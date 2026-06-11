@@ -1,0 +1,22 @@
+[package]
+name = "smartdeblur-core"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "Blind deconvolution core (Wiener / Tikhonov / Total Variation), a Rust port of SmartDeblur by Vladimir Yuzhikov"
+repository = "https://github.com/y-vladimir/smartdeblur"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+rustfft = "6"
+realfft = "3"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[dev-dependencies]
