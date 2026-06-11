@@ -6,12 +6,13 @@ import { loadImageFile } from './loadImage'
 import { BlurType, Mode, defaultParams, type DeblurParams } from './types'
 import { useDeblurEngine } from './useDeblurEngine'
 
-// The bundled example is blurred with a Gaussian of sigma 4 —
+// The bundled example is blurred with a Gaussian of sigma 3 —
 // these parameters restore it immediately.
 const exampleParams: DeblurParams = {
   ...defaultParams,
   blurType: BlurType.Gaussian,
-  radius: 4,
+  radius: 3,
+  smooth: 25,
 }
 
 export default function App() {

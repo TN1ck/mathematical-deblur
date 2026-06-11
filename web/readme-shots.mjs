@@ -9,7 +9,8 @@ const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1400, height: 900 }, deviceScaleFactor: 2 })
 await page.goto('http://localhost:5179')
 
-// A photo-like demo card, gaussian-blurred with sigma 4
+// A photo-like demo card, gaussian-blurred with sigma 3.
+// All text is sized so it stays legible after restoration.
 const blurredPng = await page.evaluate(() => {
   const w = 560, h = 400
   const sharp = document.createElement('canvas')
@@ -21,33 +22,33 @@ const blurredPng = await page.evaluate(() => {
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, w, h)
   ctx.fillStyle = '#1d2433'
-  ctx.font = 'bold 52px Georgia'
-  ctx.fillText('Boarding pass', 36, 80)
-  ctx.font = '26px Georgia'
-  ctx.fillText('Gate B42 · Seat 17A · 09:35', 36, 130)
-  ctx.font = '20px Courier'
-  ctx.fillText('PNR: X4QT7Z   FLIGHT TN-1024', 36, 175)
+  ctx.font = 'bold 54px Georgia'
+  ctx.fillText('Boarding pass', 36, 78)
+  ctx.font = '32px Georgia'
+  ctx.fillText('Gate B42 · Seat 17A · 09:35', 36, 132)
+  ctx.font = 'bold 30px Courier'
+  ctx.fillText('PNR X4QT7Z · TN-1024', 36, 184)
   ctx.strokeStyle = '#1d2433'
   ctx.lineWidth = 3
-  for (let i = 0; i < 36; i++) {
-    const bw = (i * 7919) % 3 + 1
-    ctx.fillRect(36 + i * 9, 210, bw, 70)
+  for (let i = 0; i < 30; i++) {
+    const bw = (i * 7919) % 4 + 2
+    ctx.fillRect(36 + i * 11, 215, bw, 70)
   }
-  ctx.font = 'italic 22px Georgia'
+  ctx.font = 'italic 28px Georgia'
   ctx.fillStyle = '#7a4a12'
-  ctx.fillText('have a pleasant flight', 36, 330)
+  ctx.fillText('have a pleasant flight', 36, 340)
   ctx.fillStyle = '#b33'
   ctx.beginPath()
   ctx.arc(470, 320, 44, 0, Math.PI * 2)
   ctx.fill()
   ctx.fillStyle = '#fff'
-  ctx.font = 'bold 26px Arial'
-  ctx.fillText('TN', 452, 330)
+  ctx.font = 'bold 28px Arial'
+  ctx.fillText('TN', 450, 330)
 
   const blurred = document.createElement('canvas')
   blurred.width = w; blurred.height = h
   const bctx = blurred.getContext('2d')
-  bctx.filter = 'blur(4px)'
+  bctx.filter = 'blur(3px)'
   bctx.drawImage(sharp, 0, 0)
   return blurred.toDataURL('image/png')
 })
@@ -57,15 +58,23 @@ await page.setInputFiles('input[type=file]', '/tmp/readme-blurred.png')
 await page.waitForSelector('canvas.image-canvas')
 await page.waitForFunction(() => !document.querySelector('.processing-badge'), null, { timeout: 30000 })
 
-// Gaussian defect, radius 4
+// Gaussian defect, radius 3, slightly lower smooth for crisper text
 await page.selectOption('select >> nth=0', '2')
-await page.evaluate(() => {
-  const input = document.querySelector('input[type=range]')
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
-  setter.call(input, '40')
-  input.dispatchEvent(new Event('input', { bubbles: true }))
-  input.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
-})
+const setSlider = (index, value) =>
+  page.evaluate(
+    ({ index, value }) => {
+      const input = document.querySelectorAll('input[type=range]')[index]
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+      setter.call(input, String(value))
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+      input.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
+    },
+    { index, value },
+  )
+await setSlider(0, 30) // radius 3.0
+await page.waitForTimeout(400)
+await page.waitForFunction(() => !document.querySelector('.processing-badge'), null, { timeout: 30000 })
+await setSlider(1, 25) // smooth
 await page.waitForTimeout(400)
 await page.waitForFunction(() => !document.querySelector('.processing-badge'), null, { timeout: 30000 })
 
